@@ -8,53 +8,27 @@
 import Foundation
 
 protocol APIServiceProtocol {
-    func fetchLeagues(completion: @escaping (Result<[League], Error>) -> Void)
-    func fetchTeams(for leagueName: String, completion: @escaping (Result<[Team], Error>) -> Void)
+    func fetchLeagues() async throws -> [League]
+    func fetchTeams(for leagueName: String) async throws -> [Team]
 }
 
 class APIService: APIServiceProtocol {
     private let baseURL = "https://www.thesportsdb.com/api/v1/json/123/"
     
     // MARK: - API Leagues
-    func fetchLeagues(completion: @escaping (Result<[League], Error>) -> Void) {
-        let url = URL(string: baseURL + "all_leagues.php")!
-        
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let decoded = try JSONDecoder().decode(LeagueResponse.self, from: data)
-                completion(.success(decoded.leagues))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
+    func fetchLeagues() async throws -> [League] {
+            let url = URL(string: baseURL + "all_leagues.php")!
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoded = try JSONDecoder().decode(LeagueResponse.self, from: data)
+            return decoded.leagues
+        }
     
     // MARK: - API Teams
-    func fetchTeams(for leagueName: String, completion: @escaping (Result<[Team], Error>) -> Void) {
+    func fetchTeams(for leagueName: String) async throws -> [Team] {
         let encodedName = leagueName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? leagueName
         let url = URL(string: baseURL + "search_all_teams.php?l=\(encodedName)")!
-        
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else { return }
-            
-            do {
-                let decoded = try JSONDecoder().decode(TeamResponse.self, from: data)
-                completion(.success(decoded.teams))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let decoded = try JSONDecoder().decode(TeamResponse.self, from: data)
+        return decoded.teams
     }
 }

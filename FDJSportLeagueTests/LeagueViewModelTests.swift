@@ -10,65 +10,65 @@ import XCTest
 
 final class LeagueViewModelTests: XCTestCase {
     var viewModel: LeagueViewModel!
-    var mockService: MockAPIService!
+      var mockRepository: MockLeagueRepository!
 
-    override func setUp() {
-        super.setUp()
-        mockService = MockAPIService()
-    }
+      override func setUp() {
+          super.setUp()
+          mockRepository = MockLeagueRepository()
+      }
 
-    func testFetchLeaguesSuccess() {
-        mockService.leaguesToReturn = [
-            League(idLeague: "1", strLeague: "Premier League", strSport: "Soccer"),
-            League(idLeague: "2", strLeague: "La Liga", strSport: "Soccer")
-        ]
-        
-        viewModel = LeagueViewModel(apiService: mockService)
-        
-        let expectation = XCTestExpectation(description: "fetch leagues")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            XCTAssertEqual(self.viewModel.leagues.count, 2)
-            XCTAssertNil(self.viewModel.errorMessage)
-            XCTAssertFalse(self.viewModel.isLoading)
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 1)
-    }
-    
-    func testFetchLeaguesFailure() {
-        mockService.shouldReturnError = true
-        viewModel = LeagueViewModel(apiService: mockService)
-        
-        let expectation = XCTestExpectation(description: "fetch leagues error")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            XCTAssertEqual(self.viewModel.leagues.count, 0)
-            XCTAssertNotNil(self.viewModel.errorMessage)
-            XCTAssertFalse(self.viewModel.isLoading)
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 1)
-    }
-    
-    func testFilteredLeagues() {
-        mockService.leaguesToReturn = [
-            League(idLeague: "1", strLeague: "Premier League", strSport: "Soccer"),
-            League(idLeague: "2", strLeague: "La Liga", strSport: "Soccer")
-        ]
-        viewModel = LeagueViewModel(apiService: mockService)
-        
-        viewModel.searchText = "Premier"
-        
-        let expectation = XCTestExpectation(description: "filter leagues")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            XCTAssertEqual(self.viewModel.filteredLeagues.count, 1)
-            XCTAssertEqual(self.viewModel.filteredLeagues.first?.strLeague, "Premier League")
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 1)
-    }
-}
+      func testFetchLeaguesSuccess() async {
+          mockRepository.leaguesToReturn = [
+              League(idLeague: "1", strLeague: "Premier League", strSport: "Soccer"),
+              League(idLeague: "2", strLeague: "La Liga", strSport: "Soccer")
+          ]
+
+          await MainActor.run {
+              viewModel = LeagueViewModel(repository: mockRepository)
+          }
+
+          await viewModel.fetchLeagues()
+
+          await MainActor.run {
+              XCTAssertEqual(viewModel.leagues.count, 2)
+              XCTAssertNil(viewModel.errorMessage)
+              XCTAssertFalse(viewModel.isLoading)
+          }
+      }
+
+      func testFetchLeaguesFailure() async {
+          mockRepository.shouldReturnError = true
+
+          await MainActor.run {
+              viewModel = LeagueViewModel(repository: mockRepository)
+          }
+
+          await viewModel.fetchLeagues()
+
+          await MainActor.run {
+              XCTAssertEqual(viewModel.leagues.count, 0)
+              XCTAssertNotNil(viewModel.errorMessage)
+              XCTAssertFalse(viewModel.isLoading)
+          }
+      }
+
+      func testFilteredLeagues() async {
+          mockRepository.leaguesToReturn = [
+              League(idLeague: "1", strLeague: "Premier League", strSport: "Soccer"),
+              League(idLeague: "2", strLeague: "La Liga", strSport: "Soccer")
+          ]
+
+          await MainActor.run {
+              viewModel = LeagueViewModel(repository: mockRepository)
+          }
+
+          await viewModel.fetchLeagues()
+
+          await MainActor.run {
+              viewModel.searchText = "Premier"
+              let filtered = viewModel.filteredLeagues
+              XCTAssertEqual(filtered.count, 1)
+              XCTAssertEqual(filtered.first?.strLeague, "Premier League")
+          }
+      }
+  }

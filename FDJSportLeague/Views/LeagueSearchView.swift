@@ -48,7 +48,9 @@ struct LeagueSearchView: View {
                                  .foregroundColor(.gray)
                          }
                          .onTapGesture {
-                             viewModel.fetchTeams(for: league)
+                             Task {
+                                  await viewModel.fetchTeams(for: league)
+                              }
                          }
                      }
                  }

@@ -7,69 +7,58 @@
 
 import Foundation
 
+import Foundation
+
+@MainActor
 class LeagueViewModel: ObservableObject {
+    // MARK: - Published properties
     @Published var leagues: [League] = []
     @Published var searchText: String = ""
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     @Published var selectedLeague: League? = nil
     @Published var teams: [Team] = []
-    
-    private let apiService: APIServiceProtocol
-    
-    init(apiService: APIServiceProtocol = APIService()) {
-        self.apiService = apiService
-        fetchLeagues()
+
+    // MARK: - Dependencies
+    private let repository: LeagueRepositoryProtocol
+
+    // MARK: - Init
+    init(repository: LeagueRepositoryProtocol = LeagueRepository()) {
+        self.repository = repository
+        Task { await fetchLeagues() }
     }
-    
-    // MARK: Charger toutes les leagues
-    func fetchLeagues() {
+
+    // MARK: - Fetch all leagues
+    func fetchLeagues() async {
         isLoading = true
         errorMessage = nil
-        
-        apiService.fetchLeagues { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success(let leagues):
-                    self?.leagues = leagues
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
+        do {
+            let leagues = try await repository.getLeagues()
+            self.leagues = leagues
+        } catch {
+            errorMessage = error.localizedDescription
         }
+        isLoading = false
     }
-    
-    // MARK: Filtrage 
-    var filteredLeagues: [League] {
-        if searchText.isEmpty {
-            return []
-        } else {
-            return leagues.filter { $0.strLeague.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
-    // MARK: Charger toutes les équipes
-    func fetchTeams(for league: League) {
+
+    // MARK: - Fetch teams for a league
+    func fetchTeams(for league: League) async {
         isLoading = true
         errorMessage = nil
         selectedLeague = league
         searchText = league.strLeague
-        
-        apiService.fetchTeams(for: league.strLeague) { [weak self] result in
-            DispatchQueue.main.async {
-                self?.isLoading = false
-                switch result {
-                case .success(let teams):
-                    var sorted = teams.sorted { $0.strTeam > $1.strTeam }
-                    sorted = sorted.enumerated().compactMap { index, team in
-                        return index % 2 == 0 ? team : nil
-                    }
-                    self?.teams = sorted
-                case .failure(let error):
-                    self?.errorMessage = error.localizedDescription
-                }
-            }
+        do {
+            let teams = try await repository.getTeams(for: league.strLeague)
+            self.teams = teams
+        } catch {
+            errorMessage = error.localizedDescription
         }
+        isLoading = false
+    }
+
+    // MARK: - Filtered leagues for search
+    var filteredLeagues: [League] {
+        if searchText.isEmpty { return [] }
+        return leagues.filter { $0.strLeague.localizedCaseInsensitiveContains(searchText) }
     }
 }
