@@ -11,7 +11,7 @@ import SwiftUI
 struct FDJSportLeagueApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LeagueSearchView(viewModel: LeagueViewModel())
         }
     }
 }

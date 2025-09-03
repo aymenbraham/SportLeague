@@ -29,14 +29,41 @@
 		905E1DFE2E684E9400C7F374 /* FDJSportLeagueUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FDJSportLeagueUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		905E1E182E68523500C7F374 /* Exceptions for "FDJSportLeague" folder in "FDJSportLeagueTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/LeagueModel.swift,
+				Models/TeamModel.swift,
+				Services/APIService.swift,
+				ViewModels/LeagueViewModel.swift,
+				Views/LeagueSearchView.swift,
+			);
+			target = 905E1DF32E684E9400C7F374 /* FDJSportLeagueTests */;
+		};
+		905E1E2C2E68618300C7F374 /* Exceptions for "FDJSportLeagueTests" folder in "FDJSportLeague" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				MockAPIService.swift,
+			);
+			target = 905E1DE32E684E9100C7F374 /* FDJSportLeague */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		905E1DE62E684E9100C7F374 /* FDJSportLeague */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				905E1E182E68523500C7F374 /* Exceptions for "FDJSportLeague" folder in "FDJSportLeagueTests" target */,
+			);
 			path = FDJSportLeague;
 			sourceTree = "<group>";
 		};
 		905E1DF72E684E9400C7F374 /* FDJSportLeagueTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				905E1E2C2E68618300C7F374 /* Exceptions for "FDJSportLeagueTests" folder in "FDJSportLeague" target */,
+			);
 			path = FDJSportLeagueTests;
 			sourceTree = "<group>";
 		};
